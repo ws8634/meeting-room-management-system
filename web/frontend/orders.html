@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工单管理 - 会议室管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header .user-info span {
+            margin-right: 15px;
+        }
+        
+        .header .user-info button {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .header .user-info button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .order-list {
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-pending {
+            color: #ff9800;
+        }
+        
+        .status-paid {
+            color: #4CAF50;
+        }
+        
+        .status-cancelled {
+            color: #f44336;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .pay-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .pay-btn:hover {
+            background-color: #45a049;
+        }
+        
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #da190b;
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: green;
+            margin-top: 10px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 8px;
+        }
+        
+        .modal h3 {
+            margin-bottom: 20px;
+        }
+        
+        .modal .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .modal .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal .modal-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .modal .confirm-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .modal .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>会议室管理系统</h1>
+        <div class="user-info">
+            <span id="userName"></span>
+            <button id="logoutBtn">退出登录</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>我的工单</h2>
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <div class="order-list">
+            <table id="orderTable">
+                <thead>
+                    <tr>
+                        <th>工单号</th>
+                        <th>会议室</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>时长(小时)</th>
+                        <th>总金额</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="orderBody">
+                    <!-- 工单列表将通过JS动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 支付模态框 -->
+    <div id="payModal" class="modal">
+        <div class="modal-content">
+            <h3>支付工单</h3>
+            <div class="form-group">
+                <label for="payMethod">支付方式</label>
+                <input type="text" id="payMethod" value="微信支付">
+            </div>
+            <div class="modal-buttons">
+                <button class="confirm-btn" id="confirmPay">确认支付</button>
+                <button class="cancel-btn" id="cancelPay">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 取消模态框 -->
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <h3>取消工单</h3>
+            <div class="form-group">
+                <label for="cancelReason">取消原因</label>
+                <input type="text" id="cancelReason" placeholder="请输入取消原因">
+            </div>
+            <div class="modal-buttons">
+                <button class="confirm-btn" id="confirmCancel">确认取消</button>
+                <button class="cancel-btn" id="cancelCancel">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentOrderId = null;
+        
+        // 页面加载时获取用户信息和工单列表
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = user.userName;
+            loadOrders(user.id);
+        };
+        
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+        
+        // 加载工单列表
+        function loadOrders(userId) {
+            const token = localStorage.getItem('token');
+            
+            fetch(`http://localhost:8080/api/workorder/user/list?userId=${userId}`, {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    renderOrders(data.data);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.message || '获取工单列表失败';
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').textContent = '网络错误，请稍后重试';
+                console.error('加载工单错误:', error);
+            });
+        }
+        
+        // 渲染工单列表
+        function renderOrders(orders) {
+            const orderBody = document.getElementById('orderBody');
+            orderBody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                orderBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无工单</td></tr>';
+                return;
+            }
+            
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                
+                let statusClass = '';
+                switch (order.status) {
+                    case 0:
+                        statusClass = 'status-pending';
+                        break;
+                    case 1:
+                        statusClass = 'status-paid';
+                        break;
+                    case 2:
+                        statusClass = 'status-cancelled';
+                        break;
+                }
+                
+                let actionButtons = '';
+                if (order.status === 0) {
+                    actionButtons = `
+                        <div class="action-buttons">
+                            <button class="pay-btn" onclick="openPayModal(${order.id})">支付</button>
+                            <button class="cancel-btn" onclick="openCancelModal(${order.id})">取消</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtons = '-';
+                }
+                
+                tr.innerHTML = `
+                    <td>${order.orderNo}</td>
+                    <td>${order.roomName}</td>
+                    <td>${order.startTime}</td>
+                    <td>${order.endTime}</td>
+                    <td>${order.hours}</td>
+                    <td>¥${order.totalAmount.toFixed(2)}</td>
+                    <td class="${statusClass}">${order.statusDesc}</td>
+                    <td>${actionButtons}</td>
+                `;
+                
+                orderBody.appendChild(tr);
+            });
+        }
+        
+        // 打开支付模态框
+        function openPayModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('payModal').style.display = 'block';
+        }
+        
+        // 关闭支付模态框
+        document.getElementById('cancelPay').addEventListener('click', function() {
+            document.getElementById('payModal').style.display = 'none';
+            currentOrderId = null;
+        });
+        
+        // 确认支付
+        document.getElementById('confirmPay').addEventListener('click', function() {
+            const payMethod = document.getElementById('payMethod').value;
+            const token = localStorage.getItem('token');
+            
+            fetch('http://localhost:8080/api/workorder/pay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({ 
+                    orderId: currentOrderId, 
+                    payMethod: payMethod 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    document.getElementById('successMessage').textContent = '支付成功';
+                    document.getElementById('payModal').style.display = 'none';
+                    
+                    // 重新加载工单列表
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    loadOrders(user.id);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.message || '支付失败';
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').textContent = '网络错误，请稍后重试';
+                console.error('支付错误:', error);
+            });
+        });
+        
+        // 打开取消模态框
+        function openCancelModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('cancelModal').style.display = 'block';
+        }
+        
+        // 关闭取消模态框
+        document.getElementById('cancelCancel').addEventListener('click', function() {
+            document.getElementById('cancelModal').style.display = 'none';
+            currentOrderId = null;
+        });
+        
+        // 确认取消
+        document.getElementById('confirmCancel').addEventListener('click', function() {
+            const cancelReason = document.getElementById('cancelReason').value;
+            const token = localStorage.getItem('token');
+            
+            fetch('http://localhost:8080/api/workorder/cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({ 
+                    orderId: currentOrderId, 
+                    cancelReason: cancelReason 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    document.getElementById('successMessage').textContent = '取消成功';
+                    document.getElementById('cancelModal').style.display = 'none';
+                    
+                    // 重新加载工单列表
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    loadOrders(user.id);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.message || '取消失败';
+                }
+            })
+            .catch(error => {
+                document.getElementById('errorMessage').textContent = '网络错误，请稍后重试';
+                console.error('取消错误:', error);
+            });
+        });
+    </script>
+</body>
+</html>
