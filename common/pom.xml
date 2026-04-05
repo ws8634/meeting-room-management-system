@@ -94,5 +94,18 @@
             <version>3.5.9</version>
             <scope>compile</scope>
         </dependency>
+
+        <!--JWT依赖-->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+
+        <!--Spring Security依赖-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -21,6 +21,12 @@
             <artifactId>common</artifactId>
         </dependency>
 
+        <!--Spring Web依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
         <!--MySQL依赖-->
         <dependency>
             <groupId>mysql</groupId>
@@ -58,6 +64,12 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+        <!--Servlet API依赖-->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
     </dependencies>
 </project>
