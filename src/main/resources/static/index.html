@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议室管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: #f0f0f0;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s;
+        }
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .hidden {
+            display: none;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>会议室管理系统</h1>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">登录</button>
+            <button class="tab" onclick="switchTab('register')">注册</button>
+        </div>
+        
+        <div id="loginForm">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码">
+            </div>
+            <button onclick="login()">登录</button>
+            <div id="loginMessage" class="message hidden"></div>
+        </div>
+        
+        <div id="registerForm" class="hidden">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="registerUsername" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="registerPassword" placeholder="请输入密码">
+            </div>
+            <div class="form-group">
+                <label>真实姓名</label>
+                <input type="text" id="registerRealName" placeholder="请输入真实姓名">
+            </div>
+            <div class="form-group">
+                <label>手机号</label>
+                <input type="text" id="registerPhone" placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+                <label>角色</label>
+                <select id="registerRole">
+                    <option value="USER">普通用户</option>
+                    <option value="ADMIN">管理员</option>
+                </select>
+            </div>
+            <button onclick="register()">注册</button>
+            <div id="registerMessage" class="message hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.querySelectorAll('.tab')[1].classList.add('active');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            fetch('/api/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('loginMessage');
+                messageDiv.classList.remove('hidden');
+                if (data.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = '登录成功！';
+                    localStorage.setItem('currentUser', JSON.stringify(data.data));
+                    if (data.data.role === 'ADMIN') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/user.html';
+                    }
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            });
+        }
+
+        function register() {
+            const user = {
+                username: document.getElementById('registerUsername').value,
+                password: document.getElementById('registerPassword').value,
+                realName: document.getElementById('registerRealName').value,
+                phone: document.getElementById('registerPhone').value,
+                role: document.getElementById('registerRole').value
+            };
+            
+            fetch('/api/user/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(user)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('registerMessage');
+                messageDiv.classList.remove('hidden');
+                if (data.success) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = '注册成功！请登录';
+                    switchTab('login');
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
