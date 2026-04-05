@@ -1,0 +1,14 @@
+com/rosy/framework/handler/GlobalExceptionHandler.class
+com/rosy/framework/config/OpenAPIConfig.class
+META-INF/spring-configuration-metadata.json
+com/rosy/framework/aspect/ValidationAspect.class
+com/rosy/framework/config/RedisConfig$FastJson2JsonRedisSerializer.class
+com/rosy/framework/config/SecurityConfig.class
+com/rosy/framework/aspect/LogAspect.class
+com/rosy/framework/config/RedisConfig.class
+com/rosy/framework/config/MybatisPlusConfig.class
+com/rosy/framework/config/properties/PathProperties.class
+com/rosy/framework/task/MeetingReminderTask.class
+com/rosy/framework/config/properties/ApplicationProperties.class
+com/rosy/framework/handler/CustomMetaObjectHandler.class
+com/rosy/framework/config/WebClientConfig.class

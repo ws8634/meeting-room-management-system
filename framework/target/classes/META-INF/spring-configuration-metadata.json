@@ -1,0 +1,17 @@
+{
+  "groups": [
+    {
+      "name": "path",
+      "type": "com.rosy.framework.config.properties.PathProperties",
+      "sourceType": "com.rosy.framework.config.properties.PathProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "path.file-upload-path",
+      "type": "java.lang.String",
+      "sourceType": "com.rosy.framework.config.properties.PathProperties"
+    }
+  ],
+  "hints": []
+}

@@ -1,0 +1,12 @@
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/aspect/LogAspect.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/aspect/ValidationAspect.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/MybatisPlusConfig.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/OpenAPIConfig.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/RedisConfig.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/SecurityConfig.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/WebClientConfig.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/properties/ApplicationProperties.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/config/properties/PathProperties.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/handler/CustomMetaObjectHandler.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/handler/GlobalExceptionHandler.java
+/home/wangsen/programe/EvaluationLLM/GSB0225/GLM5/SpringBoot3-CLI/framework/src/main/java/com/rosy/framework/task/MeetingReminderTask.java
