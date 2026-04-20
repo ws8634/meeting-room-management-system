@@ -29,5 +29,5 @@ public class MeetingRoomQueryRequest extends PageRequest implements Serializable
 
     @Min(value = 0, message = "状态值只能为0、1或2")
     @Max(value = 2, message = "状态值只能为0、1或2")
-    private Byte status;
+    private Integer status;
 }
