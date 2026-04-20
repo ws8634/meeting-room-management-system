@@ -61,6 +61,23 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
+    public void sendCancelNotification(Long userId, Long reservationId, String meetingTitle, String cancelReason) {
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setReservationId(reservationId);
+        notification.setType(NotificationType.CANCEL_NOTICE.getCode());
+        notification.setTitle("预约取消通知");
+        if (cancelReason != null && !cancelReason.isEmpty()) {
+            notification.setContent("您预约的会议\"" + meetingTitle + "\"已被取消。原因：" + cancelReason);
+        } else {
+            notification.setContent("您预约的会议\"" + meetingTitle + "\"已被取消。");
+        }
+        notification.setIsRead((byte) 0);
+        notification.setSendTime(LocalDateTime.now());
+        save(notification);
+    }
+
+    @Override
     public void markAsRead(Long notificationId) {
         Notification notification = getById(notificationId);
         if (notification != null) {
