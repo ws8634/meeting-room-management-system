@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户中心 - 会议室管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .hidden {
+            display: none;
+        }
+        .room-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .room-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        .room-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .room-card p {
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .room-card .price {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 5px;
+            width: 400px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+        }
+        .status-pending {
+            color: #f39c12;
+        }
+        .status-paid {
+            color: #27ae60;
+        }
+        .status-cancelled {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>会议室管理系统 - 用户中心</h1>
+        <div class="user-info">
+            <span id="currentUserName"></span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('rooms')">查看会议室</button>
+            <button class="tab" onclick="switchTab('myOrders')">我的工单</button>
+        </div>
+
+        <div id="roomsContent" class="content">
+            <h2>可预约的会议室</h2>
+            <div id="roomList" class="room-list"></div>
+        </div>
+
+        <div id="myOrdersContent" class="content hidden">
+            <h2>我的工单</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>工单ID</th>
+                        <th>会议室</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>时长</th>
+                        <th>总价</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>预约会议室</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>会议室</label>
+                <input type="text" id="modalRoomName" readonly>
+            </div>
+            <div class="form-group">
+                <label>单价</label>
+                <input type="text" id="modalHourlyRate" readonly>
+            </div>
+            <div class="form-group">
+                <label>开始时间</label>
+                <input type="datetime-local" id="modalStartTime">
+            </div>
+            <div class="form-group">
+                <label>结束时间</label>
+                <input type="datetime-local" id="modalEndTime">
+            </div>
+            <button class="btn btn-primary" onclick="submitBooking()">确认预约</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let selectedRoom = null;
+
+        function init() {
+            currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || currentUser.role === 'ADMIN') {
+                window.location.href = '/index.html';
+                return;
+            }
+            document.getElementById('currentUserName').textContent = currentUser.realName;
+            loadRooms();
+            loadMyOrders();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(c => c.classList.add('hidden'));
+            
+            if (tab === 'rooms') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('roomsContent').classList.remove('hidden');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('myOrdersContent').classList.remove('hidden');
+            }
+        }
+
+        function loadRooms() {
+            fetch('/api/room/available')
+                .then(response => response.json())
+                .then(data => {
+                    const roomList = document.getElementById('roomList');
+                    roomList.innerHTML = '';
+                    data.data.forEach(room => {
+                        const roomCard = document.createElement('div');
+                        roomCard.className = 'room-card';
+                        roomCard.innerHTML = `
+                            <h3>${room.name}</h3>
+                            <p>${room.description}</p>
+                            <p>容纳人数: ${room.capacity}人</p>
+                            <p class="price">¥${room.hourlyRate}/小时</p>
+                            <button class="btn btn-primary" onclick="openBookingModal(${room.id}, '${room.name}', ${room.hourlyRate})">预约</button>
+                        `;
+                        roomList.appendChild(roomCard);
+                    });
+                });
+        }
+
+        function loadMyOrders() {
+            fetch(`/api/order/user/${currentUser.id}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('orderTableBody');
+                    tbody.innerHTML = '';
+                    data.data.forEach(order => {
+                        const tr = document.createElement('tr');
+                        let statusClass = '';
+                        let statusText = '';
+                        if (order.status === 'PENDING') {
+                            statusClass = 'status-pending';
+                            statusText = '待支付';
+                        } else if (order.status === 'PAID') {
+                            statusClass = 'status-paid';
+                            statusText = '已支付';
+                        } else {
+                            statusClass = 'status-cancelled';
+                            statusText = '已取消';
+                        }
+                        
+                        let actions = '';
+                        if (order.status === 'PENDING') {
+                            actions = `
+                                <button class="btn btn-success" onclick="payOrder(${order.id})">支付</button>
+                                <button class="btn btn-danger" onclick="cancelOrder(${order.id})">取消</button>
+                            `;
+                        }
+                        
+                        tr.innerHTML = `
+                            <td>${order.id}</td>
+                            <td>${order.roomName}</td>
+                            <td>${order.startTime}</td>
+                            <td>${order.endTime}</td>
+                            <td>${order.durationHours}小时</td>
+                            <td>¥${order.totalAmount}</td>
+                            <td class="${statusClass}">${statusText}</td>
+                            <td>${actions}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        function openBookingModal(roomId, roomName, hourlyRate) {
+            selectedRoom = { id: roomId, name: roomName, hourlyRate: hourlyRate };
+            document.getElementById('modalRoomName').value = roomName;
+            document.getElementById('modalHourlyRate').value = `¥${hourlyRate}/小时`;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+        }
+
+        function submitBooking() {
+            const startTime = document.getElementById('modalStartTime').value;
+            const endTime = document.getElementById('modalEndTime').value;
+            
+            if (!startTime || !endTime) {
+                alert('请选择开始和结束时间');
+                return;
+            }
+            
+            const order = {
+                userId: currentUser.id,
+                roomId: selectedRoom.id,
+                roomName: selectedRoom.name,
+                userName: currentUser.realName,
+                startTime: startTime,
+                endTime: endTime,
+                hourlyRate: selectedRoom.hourlyRate
+            };
+            
+            fetch('/api/order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(order)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('预约成功！');
+                    closeModal();
+                    loadMyOrders();
+                    switchTab('myOrders');
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function payOrder(orderId) {
+            fetch(`/api/order/${orderId}/pay`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('支付成功！');
+                    loadMyOrders();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm('确定要取消这个工单吗？')) {
+                fetch(`/api/order/${orderId}/cancel`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('工单已取消！');
+                        loadMyOrders();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
