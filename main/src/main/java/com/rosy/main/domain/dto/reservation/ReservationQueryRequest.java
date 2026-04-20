@@ -30,7 +30,7 @@ public class ReservationQueryRequest extends PageRequest implements Serializable
 
     @Min(value = 0, message = "状态值只能为0、1、2、3或4")
     @Max(value = 4, message = "状态值只能为0、1、2、3或4")
-    private Byte status;
+    private Integer status;
 
     private LocalDateTime startTimeStart;
 

@@ -18,5 +18,5 @@ public class SignInQueryRequest extends PageRequest implements Serializable {
 
     private Long userId;
 
-    private Byte signInStatus;
+    private Integer signInStatus;
 }

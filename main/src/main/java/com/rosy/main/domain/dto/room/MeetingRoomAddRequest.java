@@ -30,7 +30,7 @@ public class MeetingRoomAddRequest implements Serializable {
     @NotNull(message = "状态不能为空")
     @Min(value = 0, message = "状态值只能为0、1或2")
     @Max(value = 2, message = "状态值只能为0、1或2")
-    private Byte status;
+    private Integer status;
 
     @Size(max = 500, message = "描述长度不能超过500个字符")
     private String description;
