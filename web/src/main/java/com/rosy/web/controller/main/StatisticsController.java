@@ -1,5 +1,6 @@
 package com.rosy.web.controller.main;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rosy.common.annotation.ValidateRequest;
 import com.rosy.common.domain.entity.ApiResponse;
@@ -49,9 +50,12 @@ public class StatisticsController {
         if (pageSize == null) pageSize = 10L;
         if (pageSize > 20) pageSize = 20L;
 
+        LambdaQueryWrapper<Notification> queryWrapper = notificationService.getQueryWrapper(userId, isRead);
+        queryWrapper.orderByDesc(Notification::getCreateTime);
+
         Page<Notification> notificationPage = notificationService.page(
                 new Page<>(current, pageSize),
-                notificationService.getQueryWrapper(userId, isRead)
+                queryWrapper
         );
         Page<NotificationVO> notificationVOPage = PageUtils.convert(notificationPage, notificationService::getNotificationVO);
         return ApiResponse.success(notificationVOPage);
