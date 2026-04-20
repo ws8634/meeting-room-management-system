@@ -121,8 +121,6 @@ public class ItemController {
     public ApiResponse listItemVOByPage(@RequestBody ItemQueryRequest itemQueryRequest) {
         long current = itemQueryRequest.getCurrent();
         long size = itemQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Item> itemPage = itemService.page(new Page<>(current, size), itemService.getQueryWrapper(itemQueryRequest));
         Page<ItemVO> itemVOPage = PageUtils.convert(itemPage, itemService::getItemVO);
         return ApiResponse.success(itemVOPage);

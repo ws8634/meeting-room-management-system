@@ -90,7 +90,6 @@ public class MeetingRoomController {
     public ApiResponse listRoomVOByPage(@RequestBody MeetingRoomQueryRequest queryRequest) {
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<MeetingRoom> roomPage = meetingRoomService.page(
                 new Page<>(current, size),
                 meetingRoomService.getQueryWrapper(queryRequest)

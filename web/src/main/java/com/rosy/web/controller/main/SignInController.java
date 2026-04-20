@@ -103,7 +103,6 @@ public class SignInController {
     public ApiResponse listSignInVOByPage(@RequestBody SignInQueryRequest queryRequest) {
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<SignIn> signInPage = signInService.page(
                 new Page<>(current, size),
                 signInService.getQueryWrapper(queryRequest)

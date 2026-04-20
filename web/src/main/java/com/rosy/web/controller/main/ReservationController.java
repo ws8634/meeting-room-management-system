@@ -176,7 +176,6 @@ public class ReservationController {
     public ApiResponse listReservationVOByPage(@RequestBody ReservationQueryRequest queryRequest) {
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Reservation> reservationPage = reservationService.page(
                 new Page<>(current, size),
                 reservationService.getQueryWrapper(queryRequest)
