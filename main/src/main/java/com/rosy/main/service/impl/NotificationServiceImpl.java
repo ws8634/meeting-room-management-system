@@ -95,7 +95,6 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (isRead != null) {
             queryWrapper.eq(Notification::getIsRead, isRead);
         }
-        queryWrapper.orderByDesc(Notification::getCreateTime);
         return queryWrapper;
     }
 }
