@@ -89,11 +89,11 @@ public class ReservationController {
         boolean result = reservationService.updateById(reservation);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
 
-        notificationService.sendApprovalNotification(
+        notificationService.sendCancelNotification(
                 reservation.getApplicantId(),
                 reservation.getId(),
-                false,
-                "预约已取消"
+                reservation.getTitle(),
+                "用户主动取消"
         );
         
         return ApiResponse.success(true);

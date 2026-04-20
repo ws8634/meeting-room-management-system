@@ -15,6 +15,8 @@ public interface INotificationService extends IService<Notification> {
 
     void sendMeetingReminder(Long userId, Long reservationId, String meetingTitle, LocalDateTime startTime);
 
+    void sendCancelNotification(Long userId, Long reservationId, String meetingTitle, String cancelReason);
+
     void markAsRead(Long notificationId);
 
     LambdaQueryWrapper<Notification> getQueryWrapper(Long userId, Byte isRead);

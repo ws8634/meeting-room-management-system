@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议室管理系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        header h1 { text-align: center; font-size: 28px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .nav-tab { padding: 12px 24px; background: white; border: none; border-radius: 25px; cursor: pointer; font-size: 15px; font-weight: 500; color: #666; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .nav-tab:hover { background: #f0f4ff; color: #667eea; }
+        .nav-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .content-section { display: none; animation: fadeIn 0.3s ease; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .card-header h3 { font-size: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8fafc; font-weight: 600; color: #475569; }
+        tr:hover { background: #f8fafc; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status-available { background: #d1fae5; color: #065f46; }
+        .status-maintenance { background: #fef3c7; color: #92400e; }
+        .status-disabled { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #dbeafe; color: #1e40af; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-cancelled { background: #f1f5f9; color: #475569; }
+        .status-signed { background: #d1fae5; color: #065f46; }
+        .status-late { background: #fef3c7; color: #92400e; }
+        .status-absent { background: #fee2e2; color: #991b1b; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #475569; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 20px; }
+        .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .stat-info h4 { font-size: 14px; color: #64748b; margin-bottom: 5px; }
+        .stat-info .value { font-size: 28px; font-weight: 700; color: #1e293b; }
+        .icon-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .icon-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .icon-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .icon-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .notification-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .notification-item.unread { background: #f0f7ff; }
+        .notification-title { font-weight: 600; margin-bottom: 4px; }
+        .notification-desc { font-size: 13px; color: #64748b; }
+        .notification-time { font-size: 12px; color: #94a3b8; }
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .filter-bar select, .filter-bar input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: 500; z-index: 2000; animation: toastFadeIn 0.3s ease; }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        @keyframes toastFadeIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .action-buttons { display: flex; gap: 5px; }
+        .qr-code-container { text-align: center; padding: 20px; }
+        .qr-code { width: 200px; height: 200px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .usage-bar { display: flex; align-items: center; margin: 10px 0; }
+        .usage-bar-label { width: 120px; font-size: 13px; }
+        .usage-bar-track { flex: 1; height: 20px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .usage-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 10px; transition: width 0.5s ease; }
+        .usage-bar-value { width: 60px; text-align: right; font-size: 13px; font-weight: 600; color: #667eea; }
+        .loading { text-align: center; padding: 40px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>🏢 会议室管理系统</h1></header>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="dashboard">📊 首页概览</button>
+            <button class="nav-tab" data-tab="rooms">🏛️ 会议室管理</button>
+            <button class="nav-tab" data-tab="reservations">📅 预约管理</button>
+            <button class="nav-tab" data-tab="signin">✋ 会议签到</button>
+            <button class="nav-tab" data-tab="notifications">🔔 消息通知</button>
+            <button class="nav-tab" data-tab="statistics">📈 使用统计</button>
+        </div>
+        
+        <section id="dashboard" class="content-section active">
+            <div class="dashboard-grid">
+                <div class="stat-card"><div class="stat-icon icon-blue">🏛️</div><div class="stat-info"><h4>会议室总数</h4><div class="value" id="stat-rooms">--</div></div></div>
+                <div class="stat-card"><div class="stat-icon icon-green">📅</div><div class="stat-info"><h4>今日预约</h4><div class="value" id="stat-reservations">--</div></div></div>
+                <div class="stat-card"><div class="stat-icon icon-orange">⏳</div><div class="stat-info"><h4>待审批</h4><div class="value" id="stat-pending">--</div></div></div>
+                <div class="stat-card"><div class="stat-icon icon-red">🔔</div><div class="stat-info"><h4>未读通知</h4><div class="value" id="stat-notifications">--</div></div></div>
+            </div>
+            <div class="card"><div class="card-header"><h3>📋 最近预约</h3></div><div id="recent-reservations"><div class="loading">加载中...</div></div></div>
+        </section>
+        
+        <section id="rooms" class="content-section">
+            <div class="card">
+                <div class="card-header"><h3>🏛️ 会议室列表</h3><button class="btn btn-primary" onclick="openAddRoomModal()">➕ 新增会议室</button></div>
+                <div class="filter-bar">
+                    <select id="room-status-filter" onchange="loadRooms()"><option value="">全部状态</option><option value="0">可用</option><option value="1">维护中</option><option value="2">已停用</option></select>
+                    <input type="text" id="room-search" placeholder="搜索会议室名称..." onkeyup="loadRooms()">
+                </div>
+                <div id="rooms-table-container"><div class="loading">加载中...</div></div>
+            </div>
+        </section>
+        
+        <section id="reservations" class="content-section">
+            <div class="card">
+                <div class="card-header"><h3>📅 预约列表</h3><button class="btn btn-primary" onclick="openAddReservationModal()">➕ 新建预约</button></div>
+                <div class="filter-bar">
+                    <select id="reservation-status-filter" onchange="loadReservations()"><option value="">全部状态</option><option value="0">待审批</option><option value="1">已通过</option><option value="2">已驳回</option><option value="3">已取消</option><option value="4">已完成</option></select>
+                    <select id="reservation-room-filter" onchange="loadReservations()"><option value="">全部会议室</option></select>
+                </div>
+                <div id="reservations-table-container"><div class="loading">加载中...</div></div>
+            </div>
+        </section>
+        
+        <section id="signin" class="content-section">
+            <div class="card">
+                <div class="card-header"><h3>✋ 签到管理</h3></div>
+                <div class="filter-bar"><select id="signin-reservation-filter" onchange="loadSignIns()"><option value="">选择会议...</option></select></div>
+                <div id="signin-table-container"><div class="empty-state"><p>请选择会议查看签到记录</p></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>📱 扫码签到</h3></div>
+                <div class="qr-code-container">
+                    <select id="qr-reservation-select" onchange="generateQRCode()"><option value="">选择会议生成签到码...</option></select>
+                    <div id="qr-info" style="display:none; margin-top:20px;"><p>扫描二维码进行签到</p><p id="qr-meeting-info"></p></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="notifications" class="content-section">
+            <div class="card">
+                <div class="card-header"><h3>🔔 消息通知</h3><button class="btn btn-success btn-sm" onclick="markAllAsRead()">📖 全部已读</button></div>
+                <div id="notifications-list"><div class="loading">加载中...</div></div>
+            </div>
+        </section>
+        
+        <section id="statistics" class="content-section">
+            <div class="card">
+                <div class="card-header"><h3>📊 会议室利用率</h3></div>
+                <div class="filter-bar">
+                    <input type="date" id="stat-start-date"><span>至</span><input type="date" id="stat-end-date">
+                    <button class="btn btn-primary" onclick="loadStatistics()">🔍 查询</button>
+                </div>
+                <div id="room-usage-chart"><div class="loading">加载中...</div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>📋 详细统计报表</h3></div>
+                <div id="statistics-table-container"><div class="loading">加载中...</div></div>
+            </div>
+        </section>
+    </div>
+    
+    <div id="addRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>🏛️ 新增会议室</h3><button class="modal-close" onclick="closeModal('addRoomModal')">&times;</button></div>
+            <form id="addRoomForm">
+                <div class="form-group"><label>会议室名称 *</label><input type="text" id="room-name" required></div>
+                <div class="form-group"><label>位置 *</label><input type="text" id="room-location" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>容量（人）*</label><input type="number" id="room-capacity" min="1" required></div>
+                    <div class="form-group"><label>状态</label><select id="room-status"><option value="0">可用</option><option value="1">维护中</option><option value="2">已停用</option></select></div>
+                </div>
+                <div class="form-group"><label>设备（如：投影仪,白板）</label><textarea id="room-equipment" rows="2" placeholder="投影仪, 白板, 音响"></textarea></div>
+                <div class="form-group"><label>描述</label><textarea id="room-description" rows="2"></textarea></div>
+                <div class="form-actions"><button type="button" class="btn btn-danger" onclick="closeModal('addRoomModal')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="addReservationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>📅 新建预约</h3><button class="modal-close" onclick="closeModal('addReservationModal')">&times;</button></div>
+            <form id="addReservationForm">
+                <div class="form-group"><label>选择会议室 *</label><select id="reservation-room" required><option value="">请选择...</option></select></div>
+                <div class="form-group"><label>会议主题 *</label><input type="text" id="reservation-title" required></div>
+                <div class="form-group"><label>会议目的 *</label><textarea id="reservation-purpose" rows="2" required></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>开始时间 *</label><input type="datetime-local" id="reservation-start" required></div>
+                    <div class="form-group"><label>结束时间 *</label><input type="datetime-local" id="reservation-end" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>参会人数 *</label><input type="number" id="reservation-attendees" min="1" required></div>
+                    <div class="form-group"><label>申请人ID</label><input type="number" id="reservation-applicant" value="1" min="1"></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn btn-danger" onclick="closeModal('addReservationModal')">取消</button><button type="submit" class="btn btn-primary">提交预约</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="approvalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>📋 预约审批</h3><button class="modal-close" onclick="closeModal('approvalModal')">&times;</button></div>
+            <form id="approvalForm">
+                <div class="form-group"><label>审批结果</label><select id="approval-status" onchange="toggleRejectReason()"><option value="1">通过</option><option value="0">驳回</option></select></div>
+                <div class="form-group" id="reject-reason-group" style="display:none;"><label>驳回原因</label><textarea id="approval-reason" rows="2"></textarea></div>
+                <div class="form-actions"><button type="button" class="btn btn-danger" onclick="closeModal('approvalModal')">取消</button><button type="submit" class="btn btn-primary">确认</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="signinModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>✋ 签到登记</h3><button class="modal-close" onclick="closeModal('signinModal')">&times;</button></div>
+            <form id="signinForm">
+                <div class="form-group"><label>用户ID</label><input type="number" id="signin-user-id" value="1" min="1"></div>
+                <div class="form-group"><label>备注</label><textarea id="signin-remark" rows="2"></textarea></div>
+                <div class="form-actions"><button type="button" class="btn btn-danger" onclick="closeModal('signinModal')">取消</button><button type="submit" class="btn btn-primary">签到</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '';
+        let currentTab = 'dashboard';
+        let currentReservationId = null;
+        let roomsCache = [];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initTabs();
+            initForms();
+            loadDashboard();
+            loadRoomSelects();
+        });
+        
+        function initTabs() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() { switchTab(this.dataset.tab); });
+            });
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            currentTab = tabName;
+            
+            switch(tabName) {
+                case 'dashboard': loadDashboard(); break;
+                case 'rooms': loadRooms(); break;
+                case 'reservations': loadReservations(); break;
+                case 'signin': loadSignInReservations(); break;
+                case 'notifications': loadNotifications(); break;
+                case 'statistics': loadStatistics(); break;
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        async function apiRequest(url, options = {}) {
+            try {
+                const response = await fetch(API_BASE + url, {
+                    headers: { 'Content-Type': 'application/json', ...options.headers },
+                    ...options,
+                    body: options.body ? JSON.stringify(options.body) : undefined
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return { code: -1, message: '请求失败' };
+            }
+        }
+        
+        async function loadDashboard() {
+            try {
+                const roomsRes = await apiRequest('/room/list/page', { method: 'POST', body: { current: 1, pageSize: 100 } });
+                document.getElementById('stat-rooms').textContent = roomsRes.data?.total || 0;
+                
+                const reservationsRes = await apiRequest('/reservation/list/page', { method: 'POST', body: { current: 1, pageSize: 100 } });
+                const reservations = reservationsRes.data?.records || [];
+                const pendingCount = reservations.filter(r => r.status === 0).length;
+                document.getElementById('stat-reservations').textContent = reservations.length;
+                document.getElementById('stat-pending').textContent = pendingCount;
+                
+                const notificationsRes = await apiRequest('/statistics/notification/unread/count?userId=1');
+                document.getElementById('stat-notifications').textContent = notificationsRes.data || 0;
+                
+                loadRecentReservations(reservations);
+            } catch (error) { console.error('Dashboard load error:', error); }
+        }
+        
+        function loadRecentReservations(reservations) {
+            const container = document.getElementById('recent-reservations');
+            if (!reservations || reservations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无预约记录</p></div>';
+                return;
+            }
+            const recent = reservations.slice(0, 5);
+            container.innerHTML = `<table><thead><tr><th>会议主题</th><th>开始时间</th><th>结束时间</th><th>状态</th></tr></thead><tbody>
+                ${recent.map(r => `<tr><td>${escapeHtml(r.title)}</td><td>${formatDateTime(r.startTime)}</td><td>${formatDateTime(r.endTime)}</td><td>${getStatusBadge(r.status, 'reservation')}</td></tr>`).join('')}
+            </tbody></table>`;
+        }
+        
+        async function loadRooms() {
+            try {
+                const statusFilter = document.getElementById('room-status-filter').value;
+                const searchQuery = document.getElementById('room-search').value.toLowerCase();
+                
+                const response = await apiRequest('/room/list/page/vo', { method: 'POST', body: { current: 1, pageSize: 100, status: statusFilter ? parseInt(statusFilter) : null } });
+                let rooms = response.data?.records || [];
+                roomsCache = rooms;
+                
+                if (searchQuery) rooms = rooms.filter(r => r.name.toLowerCase().includes(searchQuery) || r.location.toLowerCase().includes(searchQuery));
+                renderRoomsTable(rooms);
+            } catch (error) { console.error('Load rooms error:', error); }
+        }
+        
+        function renderRoomsTable(rooms) {
+            const container = document.getElementById('rooms-table-container');
+            if (!rooms || rooms.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无会议室数据</p></div>';
+                return;
+            }
+            container.innerHTML = `<table><thead><tr><th>ID</th><th>名称</th><th>位置</th><th>容量</th><th>设备</th><th>状态</th><th>操作</th></tr></thead><tbody>
+                ${rooms.map(room => `<tr><td>${room.id}</td><td>${escapeHtml(room.name)}</td><td>${escapeHtml(room.location)}</td><td>${room.capacity}人</td><td>${formatEquipment(room.equipment)}</td><td>${getRoomStatusBadge(room.status, room.statusDesc)}</td><td>
+                    <div class="action-buttons"><button class="btn btn-warning btn-sm" onclick="deleteRoom(${room.id})">删除</button></div>
+                </td></tr>`).join('')}
+            </tbody></table>`;
+        }
+        
+        function getRoomStatusBadge(status, desc) {
+            const classes = { 0: 'status-available', 1: 'status-maintenance', 2: 'status-disabled' };
+            const texts = { 0: desc || '可用', 1: desc || '维护中', 2: desc || '已停用' };
+            return `<span class="status-badge ${classes[status] || ''}">${texts[status] || '未知'}</span>`;
+        }
+        
+        function getStatusBadge(status, type) {
+            const configs = {
+                reservation: { 0: { class: 'status-pending', text: '待审批' }, 1: { class: 'status-approved', text: '已通过' }, 2: { class: 'status-rejected', text: '已驳回' }, 3: { class: 'status-cancelled', text: '已取消' }, 4: { class: 'status-approved', text: '已完成' } },
+                signin: { 0: { class: 'status-absent', text: '未签到' }, 1: { class: 'status-signed', text: '已签到' }, 2: { class: 'status-late', text: '迟到' }, 3: { class: 'status-absent', text: '缺席' } }
+            };
+            const config = configs[type]?.[status] || { class: '', text: '未知' };
+            return `<span class="status-badge ${config.class}">${config.text}</span>`;
+        }
+        
+        function formatEquipment(equipment) {
+            if (!equipment) return '-';
+            try { return JSON.parse(equipment).join(', '); } catch { return equipment; }
+        }
+        
+        async function loadRoomSelects() {
+            try {
+                const response = await apiRequest('/room/list/page/vo', { method: 'POST', body: { current: 1, pageSize: 100 } });
+                const rooms = response.data?.records || [];
+                roomsCache = rooms;
+                
+                const reservationRoom = document.getElementById('reservation-room');
+                const reservationRoomFilter = document.getElementById('reservation-room-filter');
+                
+                rooms.forEach(room => {
+                    if (room.status === 0) {
+                        const option = document.createElement('option');
+                        option.value = room.id;
+                        option.textContent = `${room.name} (${room.capacity}人)`;
+                        reservationRoom.appendChild(option);
+                    }
+                    const filterOption = document.createElement('option');
+                    filterOption.value = room.id;
+                    filterOption.textContent = room.name;
+                    reservationRoomFilter.appendChild(filterOption.cloneNode(true));
+                });
+            } catch (error) { console.error('Load room selects error:', error); }
+        }
+        
+        async function loadReservations() {
+            try {
+                const statusFilter = document.getElementById('reservation-status-filter').value;
+                const roomFilter = document.getElementById('reservation-room-filter').value;
+                
+                const response = await apiRequest('/reservation/list/page/vo', { method: 'POST', body: { current: 1, pageSize: 100, status: statusFilter ? parseInt(statusFilter) : null, roomId: roomFilter ? parseInt(roomFilter) : null } });
+                renderReservationsTable(response.data?.records || []);
+            } catch (error) { console.error('Load reservations error:', error); }
+        }
+        
+        function renderReservationsTable(reservations) {
+            const container = document.getElementById('reservations-table-container');
+            if (!reservations || reservations.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无预约记录</p></div>';
+                return;
+            }
+            container.innerHTML = `<table><thead><tr><th>ID</th><th>会议主题</th><th>会议室</th><th>开始时间</th><th>结束时间</th><th>参会人数</th><th>状态</th><th>操作</th></tr></thead><tbody>
+                ${reservations.map(r => `<tr><td>${r.id}</td><td>${escapeHtml(r.title)}</td><td>${escapeHtml(r.roomName || '-')}</td><td>${formatDateTime(r.startTime)}</td><td>${formatDateTime(r.endTime)}</td><td>${r.attendeeCount}人</td><td>${getStatusBadge(r.status, 'reservation')}</td><td>
+                    <div class="action-buttons">
+                        ${r.status === 0 ? `<button class="btn btn-success btn-sm" onclick="openApprovalModal(${r.id})">审批</button>` : ''}
+                        ${(r.status === 0 || r.status === 1) ? `<button class="btn btn-danger btn-sm" onclick="cancelReservation(${r.id})">取消</button>` : ''}
+                        ${r.status === 1 ? `<button class="btn btn-primary btn-sm" onclick="openSignInModal(${r.id})">签到</button>` : ''}
+                    </div>
+                </td></tr>`).join('')}
+            </tbody></table>`;
+        }
+        
+        async function loadSignInReservations() {
+            try {
+                const response = await apiRequest('/reservation/list/page/vo', { method: 'POST', body: { current: 1, pageSize: 100, status: 1 } });
+                const reservations = response.data?.records || [];
+                
+                const filter = document.getElementById('signin-reservation-filter');
+                const qrSelect = document.getElementById('qr-reservation-select');
+                filter.innerHTML = '<option value="">选择会议...</option>';
+                qrSelect.innerHTML = '<option value="">选择会议生成签到码...</option>';
+                
+                reservations.forEach(r => {
+                    const option1 = document.createElement('option');
+                    option1.value = r.id;
+                    option1.textContent = `${r.title} (${formatDateTime(r.startTime)})`;
+                    filter.appendChild(option1);
+                    qrSelect.appendChild(option1.cloneNode(true));
+                });
+            } catch (error) { console.error('Load signin reservations error:', error); }
+        }
+        
+        async function loadSignIns() {
+            const reservationId = document.getElementById('signin-reservation-filter').value;
+            const container = document.getElementById('signin-table-container');
+            
+            if (!reservationId) {
+                container.innerHTML = '<div class="empty-state"><p>请选择会议查看签到记录</p></div>';
+                return;
+            }
+            
+            try {
+                const response = await apiRequest('/signin/list/page/vo', { method: 'POST', body: { current: 1, pageSize: 100, reservationId: parseInt(reservationId) } });
+                const signIns = response.data?.records || [];
+                
+                const statsRes = await apiRequest(`/signin/statistics?reservationId=${reservationId}`);
+                const stats = statsRes.data || { signed: 0, total: 0, rate: 0 };
+                
+                const statsHtml = `<div style="margin-bottom:20px;padding:15px;background:#f8fafc;border-radius:8px;"><strong>签到统计：</strong><span style="margin-left:20px;">已签到: ${stats.signed}人</span><span style="margin-left:20px;">签到率: ${stats.rate.toFixed(1)}%</span></div>`;
+                
+                if (!signIns || signIns.length === 0) {
+                    container.innerHTML = statsHtml + '<div class="empty-state"><p>暂无签到记录</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = statsHtml + `<table><thead><tr><th>ID</th><th>用户ID</th><th>签到时间</th><th>状态</th><th>备注</th></tr></thead><tbody>
+                    ${signIns.map(s => `<tr><td>${s.id}</td><td>${s.userId}</td><td>${formatDateTime(s.signInTime)}</td><td>${getStatusBadge(s.signInStatus, 'signin')}</td><td>${escapeHtml(s.remark || '-')}</td></tr>`).join('')}
+                </tbody></table>`;
+            } catch (error) { console.error('Load signins error:', error); }
+        }
+        
+        async function loadNotifications() {
+            try {
+                const response = await apiRequest('/statistics/notification/list?userId=1&current=1&pageSize=50');
+                const notifications = response.data?.records || [];
+                const container = document.getElementById('notifications-list');
+                
+                if (!notifications || notifications.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>暂无通知</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = notifications.map(n => `<div class="notification-item ${n.isRead === 0 ? 'unread' : ''}" onclick="markAsRead(${n.id})">
+                    <div><div class="notification-title">${escapeHtml(n.title)}</div><div class="notification-desc">${escapeHtml(n.content)}</div></div>
+                    <div class="notification-time">${formatDateTime(n.sendTime)}</div>
+                </div>`).join('');
+            } catch (error) { console.error('Load notifications error:', error); }
+        }
+        
+        async function loadStatistics() {
+            try {
+                const startDate = document.getElementById('stat-start-date').value;
+                const endDate = document.getElementById('stat-end-date').value;
+                
+                const response = await apiRequest('/statistics/room/usage/all', { method: 'POST', body: { startTime: startDate ? startDate + 'T00:00:00' : null, endTime: endDate ? endDate + 'T23:59:59' : null } });
+                const statistics = response.data || [];
+                
+                const chartContainer = document.getElementById('room-usage-chart');
+                const tableContainer = document.getElementById('statistics-table-container');
+                
+                if (!statistics || statistics.length === 0) {
+                    chartContainer.innerHTML = '<div class="empty-state"><p>暂无统计数据</p></div>';
+                    tableContainer.innerHTML = '<div class="empty-state"><p>暂无统计数据</p></div>';
+                    return;
+                }
+                
+                chartContainer.innerHTML = statistics.map(s => `<div class="usage-bar"><div class="usage-bar-label">${escapeHtml(s.roomName)}</div><div class="usage-bar-track"><div class="usage-bar-fill" style="width:${Math.min(s.usageRate || 0, 100)}%"></div></div><div class="usage-bar-value">${(s.usageRate || 0).toFixed(1)}%</div></div>`).join('');
+                
+                tableContainer.innerHTML = `<table><thead><tr><th>会议室</th><th>总预约数</th><th>已完成</th><th>已取消</th><th>利用率</th></tr></thead><tbody>
+                    ${statistics.map(s => `<tr><td>${escapeHtml(s.roomName)}</td><td>${s.totalReservations || 0}</td><td>${s.completedReservations || 0}</td><td>${s.cancelledReservations || 0}</td><td><span class="status-badge ${(s.usageRate || 0) >= 70 ? 'status-approved' : (s.usageRate || 0) >= 40 ? 'status-pending' : 'status-absent'}">${(s.usageRate || 0).toFixed(1)}%</span></td></tr>`).join('')}
+                </tbody></table>`;
+            } catch (error) { console.error('Load statistics error:', error); }
+        }
+        
+        function openAddRoomModal() { document.getElementById('addRoomForm').reset(); openModal('addRoomModal'); }
+        
+        function openAddReservationModal() {
+            document.getElementById('addReservationForm').reset();
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getMinutes() % 30);
+            now.setMinutes(now.getMinutes() + 30);
+            document.getElementById('reservation-start').value = formatDateTimeLocal(now);
+            const end = new Date(now.getTime() + 60 * 60 * 1000);
+            document.getElementById('reservation-end').value = formatDateTimeLocal(end);
+            openModal('addReservationModal');
+        }
+        
+        function openApprovalModal(reservationId) { currentReservationId = reservationId; document.getElementById('approval-status').value = '1'; document.getElementById('approval-reason').value = ''; toggleRejectReason(); openModal('approvalModal'); }
+        
+        function openSignInModal(reservationId) { currentReservationId = reservationId; document.getElementById('signinForm').reset(); document.getElementById('signin-user-id').value = '1'; openModal('signinModal'); }
+        
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function toggleRejectReason() { document.getElementById('reject-reason-group').style.display = document.getElementById('approval-status').value === '0' ? 'block' : 'none'; }
+        
+        function initForms() {
+            document.getElementById('addRoomForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const equipment = document.getElementById('room-equipment').value;
+                let equipmentJson = equipment ? JSON.stringify(equipment.split(',').map(s => s.trim())) : null;
+                
+                const response = await apiRequest('/room/add', { method: 'POST', body: { name: document.getElementById('room-name').value, location: document.getElementById('room-location').value, capacity: parseInt(document.getElementById('room-capacity').value), status: parseInt(document.getElementById('room-status').value), equipment: equipmentJson, description: document.getElementById('room-description').value } });
+                
+                if (response.code === 0 || response.data) { showToast('会议室添加成功'); closeModal('addRoomModal'); loadRooms(); loadRoomSelects(); }
+                else showToast(response.message || '添加失败', 'error');
+            });
+            
+            document.getElementById('addReservationForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const response = await apiRequest('/reservation/add', { method: 'POST', body: { roomId: parseInt(document.getElementById('reservation-room').value), title: document.getElementById('reservation-title').value, purpose: document.getElementById('reservation-purpose').value, startTime: document.getElementById('reservation-start').value, endTime: document.getElementById('reservation-end').value, attendeeCount: parseInt(document.getElementById('reservation-attendees').value), applicantId: parseInt(document.getElementById('reservation-applicant').value) } });
+                
+                if (response.code === 0 || response.data) { showToast('预约提交成功，等待审批'); closeModal('addReservationModal'); loadReservations(); }
+                else showToast(response.message || '预约失败', 'error');
+            });
+            
+            document.getElementById('approvalForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const response = await apiRequest('/reservation/approve', { method: 'POST', body: { reservationId: currentReservationId, approvalStatus: parseInt(document.getElementById('approval-status').value), rejectReason: document.getElementById('approval-reason').value } });
+                
+                if (response.code === 0 || response.data) { showToast('审批成功'); closeModal('approvalModal'); loadReservations(); }
+                else showToast(response.message || '审批失败', 'error');
+            });
+            
+            document.getElementById('signinForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const response = await apiRequest('/signin/do', { method: 'POST', body: { reservationId: currentReservationId, userId: parseInt(document.getElementById('signin-user-id').value), remark: document.getElementById('signin-remark').value } });
+                
+                if (response.code === 0 || response.data) { showToast('签到成功'); closeModal('signinModal'); }
+                else showToast(response.message || '签到失败', 'error');
+            });
+        }
+        
+        async function deleteRoom(roomId) {
+            if (!confirm('确定要删除这个会议室吗？')) return;
+            const response = await apiRequest('/room/delete', { method: 'POST', body: { id: roomId } });
+            if (response.code === 0 || response.data) { showToast('删除成功'); loadRooms(); }
+            else showToast(response.message || '删除失败', 'error');
+        }
+        
+        async function cancelReservation(reservationId) {
+            if (!confirm('确定要取消这个预约吗？')) return;
+            const response = await apiRequest('/reservation/cancel', { method: 'POST', body: { reservationId: reservationId } });
+            if (response.code === 0 || response.data) { showToast('取消成功'); loadReservations(); }
+            else showToast(response.message || '取消失败', 'error');
+        }
+        
+        async function markAsRead(notificationId) {
+            await apiRequest(`/statistics/notification/read?notificationId=${notificationId}`, { method: 'POST' });
+            loadNotifications();
+        }
+        
+        async function markAllAsRead() {
+            const response = await apiRequest('/statistics/notification/list?userId=1&isRead=0&current=1&pageSize=100');
+            const notifications = response.data?.records || [];
+            for (const n of notifications) await apiRequest(`/statistics/notification/read?notificationId=${n.id}`, { method: 'POST' });
+            showToast('已全部标记为已读');
+            loadNotifications();
+        }
+        
+        function generateQRCode() {
+            const reservationId = document.getElementById('qr-reservation-select').value;
+            const qrInfo = document.getElementById('qr-info');
+            const qrMeetingInfo = document.getElementById('qr-meeting-info');
+            
+            if (!reservationId) { qrInfo.style.display = 'none'; return; }
+            
+            const select = document.getElementById('qr-reservation-select');
+            qrMeetingInfo.textContent = select.options[select.selectedIndex].textContent;
+            qrInfo.style.display = 'block';
+        }
+        
+        function formatDateTime(dt) {
+            if (!dt) return '-';
+            const d = new Date(dt);
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+        
+        function formatDateTimeLocal(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
